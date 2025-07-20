@@ -1,0 +1,13 @@
+// Dosya: specs/Concepts/hepsiburada.cpt
+# Kullanıcı Girişi Yapma <eposta> <sifre>
+* Üye girişi ekranında email adresi <eposta> girilir
+* Şifre <sifre> girilir
+* Giriş yap butonuna tıklanılır
+
+# Kredi Kartı Bilgilerini Doldur ve Onayla <kart_numarasi> <ay> <yil> <cvv>
+* Kart bilgilerini gir butonuna tıklanılır
+* Kart numarası <kart_numarasi> girilir
+* Ay/Yıl <ay> <yil> girilir
+* CVV <cvv> girilir
+* Kart kaydet boxı işaretlenir
+* Sözleşme boxı işaretlenir

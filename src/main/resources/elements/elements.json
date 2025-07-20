@@ -1,0 +1,73 @@
+[
+  {
+    "key": "hepsiburada_logo",
+    "value": "a[title='Hepsiburada'] > svg",
+    "type": "css"
+  },
+
+  {
+    "key": "third_product_image",
+    "value": "div[data-test-id^='product-card']:nth-of-type(3) img.hb-HbImage-view__image",
+    "type": "css"
+  },
+  {
+    "key": "add_to_cart_button",
+    "value": "button[data-test-id='addToCart']",
+    "type": "css"
+  },
+  {
+    "key": "shopping_cart_button",
+    "value": "shoppingCart",
+    "type": "id"
+  },
+  {
+    "key": "complete_shopping_button",
+    "value": "continue_step_btn",
+    "type": "id"
+  },
+  {
+  "key": "login_email_input",
+  "value": "txtUserName",
+  "type": "id"
+  },
+  {
+      "key": "login_password_input",
+      "value": "txtPassword",
+      "type": "id"
+  },
+  {
+    "key": "card_number_input",
+    "value": "cardNumber",
+    "type": "id"
+  },
+  {
+    "key": "enter_card_details_button",
+    "value": "Kart bilgilerini gir",
+    "type": "linkText"
+  },
+  {
+    "key": "card_expiry_date_input",
+    "value": "expireDate",
+    "type": "id"
+  },
+  {
+    "key": "card_cvv_input",
+    "value": "cvv",
+    "type": "id"
+  },
+  {
+    "key": "generic_name_input",
+    "value": "name",
+    "type": "id"
+  },
+  {
+  "key": "contract_checkbox",
+  "value": "contract",
+  "type": "id"
+  },
+  {
+  "key": "save_card_checkbox",
+  "value": "saveCard",
+  "type": "id"
+  }
+]
