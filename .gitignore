@@ -10,6 +10,14 @@ reports
 # Gauge - java class output directory
 gauge_bin
 
-# Gauge - java class target dir
-target
+# Maven build output
+target/
 
+# IDE dosyaları
+.idea/
+*.iml
+
+# İndirilen tarayıcılar ve driver'lar
+chrome-mac-arm64/
+chromedriver
+chromedriver.exe

@@ -1,9 +1,10 @@
 # Hepsiburada Uçtan Uca Alışveriş Akışı
 
-## Kullanıcı Akışı: Ürün Sepete Ekleme ve Ödeme Bilgileri Girişi
+## Kullanıcı Akışı: Ürün Arama, Sepete Ekleme ve Ödeme Bilgileri Girişi
 
 * Hepsiburada ana sayfasına gidilir
-* Ana sayfadaki 3. ürüne girilir
+* Arama kutusuna "bilgisayar" yazılır
+* Çıkan sonuçlardan 3. ürüne gidilir
 * Ürün sepete eklenir
 * Sepete gidilir
 * Alışverişi tamamla butonuna tıklanılır

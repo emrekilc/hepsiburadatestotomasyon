@@ -11,6 +11,11 @@
     "type": "css"
   },
   {
+    "key": "arama_kutusu",
+    "value": "input[data-test-id='search-bar-input']",
+    "type": "css"
+  },
+  {
     "key": "add_to_cart_button",
     "value": "button[data-test-id='addToCart']",
     "type": "css"

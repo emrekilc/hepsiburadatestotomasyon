@@ -14,14 +14,6 @@ import java.time.Duration;
 import java.util.NoSuchElementException;
 import java.util.function.Function;
 
-/**
- * Hepsiburada uçtan uca alışveriş akışı için Selenium 4.15.0 ile uyumlu Step Implementation sınıfı.
- * <p>
- * DİKKAT:
- *  - .spec içindeki step cümleleriyle @Step annotation string'leri HARFİ HARFİNE aynı olmalı.
- *  - Parametreler (<eposta>, <sifre>, <kart_numarasi>, <ay>, <yil>, <cvv>) spec data table'ından (veya row parametresinden) otomatik geçer.
- *  - WebDriverWait artık Selenium 4'te Duration alır.
- */
 public class HepsiburadaSteps {
 
     private WebDriver driver;
@@ -36,16 +28,36 @@ public class HepsiburadaSteps {
 
     @BeforeScenario
     public void setup() {
-        WebDriverManager.chromedriver().setup();
-        ChromeOptions options = new ChromeOptions();
-        // İstersen headless açmak için yorum satırını kaldır:
-        // options.addArguments("--headless=new");
-        options.addArguments("--disable-notifications", "--start-maximized", "--no-sandbox", "--disable-gpu");
-        driver = new ChromeDriver(options);
-        driver.manage().timeouts().pageLoadTimeout(PAGE_LOAD_TIMEOUT);
-        driver.manage().timeouts().implicitlyWait(IMPLICIT_WAIT);
-        wait = new WebDriverWait(driver, EXPLICIT_WAIT);
-        wait.pollingEvery(POLLING_INTERVAL);
+        try {
+            System.out.println("1. 'setup' metodu başladı.");
+
+            System.out.println("2. WebDriverManager cache temizleniyor ve driver kuruluyor...");
+            // WebDriverManager.chromedriver().clearDriverCache().setup(); // Önce cache'i temizlemeden deneyelim
+            WebDriverManager.chromedriver().setup();
+            System.out.println("3. WebDriverManager başarıyla tamamlandı.");
+
+            System.out.println("4. ChromeOptions oluşturuluyor...");
+            ChromeOptions options = new ChromeOptions();
+            options.setExperimentalOption("excludeSwitches", new String[]{"enable-automation"});
+            options.addArguments("--disable-blink-features=AutomationControlled");
+            options.addArguments("--disable-notifications", "--start-maximized", "--no-sandbox", "--disable-gpu");
+            options.addArguments("--remote-allow-origins=*");
+            System.out.println("5. ChromeOptions başarıyla oluşturuldu.");
+
+            System.out.println("6. ChromeDriver (TARAYICI) başlatılıyor. Bu adımdan sonra tarayıcı açılmalı...");
+            driver = new ChromeDriver(options);
+            System.out.println("7. ChromeDriver başarıyla başlatıldı.");
+
+            driver.manage().timeouts().pageLoadTimeout(PAGE_LOAD_TIMEOUT);
+            driver.manage().timeouts().implicitlyWait(IMPLICIT_WAIT);
+            wait = new WebDriverWait(driver, EXPLICIT_WAIT);
+            wait.pollingEvery(POLLING_INTERVAL);
+            System.out.println("8. Wait ayarları yapıldı. Setup tamamlandı.");
+
+        } catch (Exception e) {
+            System.err.println("!!!!!!!! SETUP METODUNDA HATA OLUŞTU !!!!!!!!");
+            e.printStackTrace();
+        }
     }
 
     @AfterScenario
@@ -55,7 +67,7 @@ public class HepsiburadaSteps {
         }
     }
 
-    // ===================== YARDIMCI METODLAR =====================
+    // ===================== YARDIMCI METODLAR (Senin Kodun) =====================
     private WebElement waitClickable(By by) {
         return wait.until(ExpectedConditions.elementToBeClickable(by));
     }
@@ -69,7 +81,6 @@ public class HepsiburadaSteps {
         try {
             el.click();
         } catch (ElementClickInterceptedException e) {
-            // alternatif: JS click
             ((JavascriptExecutor) driver).executeScript("arguments[0].click();", el);
         }
     }
@@ -78,12 +89,11 @@ public class HepsiburadaSteps {
         WebElement input = waitVisible(by);
         try {
             input.clear();
+            input.sendKeys(value);
         } catch (InvalidElementStateException ignore) {
-            // bazı custom inputlarda clear çalışmayabilir; fallback
-            input.sendKeys(Keys.chord(Keys.CONTROL, "a"));
-            input.sendKeys(Keys.DELETE);
+            input.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.DELETE);
+            input.sendKeys(value);
         }
-        input.sendKeys(value);
     }
 
     private boolean exists(By by, Duration timeout) {
@@ -102,8 +112,23 @@ public class HepsiburadaSteps {
         }
     }
 
-    // ===================== SPEC STEPLERİ =====================
+    private void toggleCheckbox(By by, boolean shouldBeSelected) {
+        WebElement cb = waitClickable(by);
+        boolean selected = cb.isSelected();
+        if (selected != shouldBeSelected) {
+            cb.click();
+        }
+    }
 
+    private void switchToLastWindow() {
+        String lastHandle = driver.getWindowHandle();
+        for (String handle : driver.getWindowHandles()) {
+            lastHandle = handle;
+        }
+        driver.switchTo().window(lastHandle);
+    }
+
+    // ===================== SPEC STEPLERİ (Entegre Edilmiş) =====================
 
     @Step("Hepsiburada ana sayfasına gidilir")
     public void navigateToHepsiburadaHomePage() {
@@ -111,12 +136,22 @@ public class HepsiburadaSteps {
         dismissCookieIfPresent();
     }
 
-    @Step("Ana sayfadaki 3. ürüne girilir")
-    public void clickThirdProductOnHomePage() {
-        // third_product_image locator'ının ürün linkini veya img'sini temsil ettiğini varsayıyoruz.
-        safeClick(locatorHelper.getLocator("third_product_image"));
-        // Yeni sekme açıldıysa ona geç (Hepsiburada bazı ürünlerde yeni tab açabiliyor)
+    @Step("Arama kutusuna <kelime> yazılır")
+    public void searchForItem(String kelime) {
+        // Artık sağlam clearAndType metodunu kullanıyoruz.
+        clearAndType(locatorHelper.getLocator("arama_kutusu"), kelime);
+        // Enter tuşuna basarak arama yapmak için
+        waitVisible(locatorHelper.getLocator("arama_kutusu")).sendKeys(Keys.ENTER);
+        System.out.println("'" + kelime + "' arandı.");
+    }
+
+    @Step("Çıkan sonuçlardan 3. ürüne gidilir")
+    public void clickThirdProduct() {
+        // Artık sağlam safeClick metodunu kullanıyoruz.
+        safeClick(locatorHelper.getLocator("arama_sonucu_ucuncu_urun"));
+        // Yeni sekme açılma ihtimaline karşı son sekmeye geçiş yapıyoruz.
         switchToLastWindow();
+        System.out.println("Arama sonuçlarındaki 3. ürüne tıklandı.");
     }
 
     @Step("Ürün sepete eklenir")
@@ -161,9 +196,8 @@ public class HepsiburadaSteps {
 
     @Step("Ay/Yıl <ay> <yil> girilir")
     public void enterExpiryDate(String ay, String yil) {
-        // Tek inline input varsayımı (MM/YY). Eğer ayrı alan ise locatorları ayır.
         String yearPart = (yil != null && yil.length() > 2) ? yil.substring(yil.length() - 2) : yil;
-        clearAndType(locatorHelper.getLocator("card_expiry_date_input"), ay + "/" + yearPart);
+        clearAndType(locatorHelper.getLocator("card_expiry_date_input"), ay + yearPart);
     }
 
     @Step("CVV <cvv> girilir")
@@ -179,45 +213,5 @@ public class HepsiburadaSteps {
     @Step("Sözleşme boxı işaretlenir")
     public void checkContractCheckbox() {
         toggleCheckbox(locatorHelper.getLocator("contract_checkbox"), true);
-    }
-
-    // ===================== EK YARDIMCI METODLAR =====================
-
-    private void toggleCheckbox(By by, boolean shouldBeSelected) {
-        WebElement cb = waitClickable(by);
-        boolean selected;
-        try {
-            selected = cb.isSelected();
-        } catch (StaleElementReferenceException e) {
-            cb = waitClickable(by);
-            selected = cb.isSelected();
-        }
-        if (selected != shouldBeSelected) {
-            cb.click();
-        }
-    }
-
-    private void switchToLastWindow() {
-        String lastHandle = driver.getWindowHandle();
-        for (String handle : driver.getWindowHandles()) {
-            lastHandle = handle; // döngü sonunda son eleman
-        }
-        driver.switchTo().window(lastHandle);
-    }
-
-    // (Opsiyonel) iFrame kart alanı durumunda kullanım için örnek:
-    private void switchIntoFrameIfExists(String frameCssOrId) {
-        try {
-            driver.switchTo().defaultContent();
-            // önce id ile dene yoksa css selector
-            try {
-                driver.switchTo().frame(frameCssOrId);
-                return;
-            } catch (NoSuchFrameException ignored) {}
-            WebElement frameEl = driver.findElement(By.cssSelector(frameCssOrId));
-            driver.switchTo().frame(frameEl);
-        } catch (Exception ignored) {
-            // frame yoksa sessiz geçiyoruz
-        }
     }
 }
